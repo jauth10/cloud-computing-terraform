@@ -1,0 +1,32 @@
+# --- Terraform ---
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+crash.log
+crash.*.log
+
+# Variablendateien mit umgebungsspezifischen Werten
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+
+# Override-Dateien sind lokale Anpassungen
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# CLI-Konfiguration kann Credentials enthalten
+.terraformrc
+terraform.rc
+
+# --- Build-Artefakte ---
+*.zip
+
+# --- AWS ---
+.aws/
+credentials
+
+# --- macOS ---
+.DS_Store
