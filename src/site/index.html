@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AquaVita e. V.</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 40rem; margin: 4rem auto; padding: 0 1rem; color: #1a2b3c; }
+    #campaign-counter { font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>AquaVita e. V.</h1>
+  <p>Hello World – diese Seite wird über Amazon CloudFront aus einem privaten S3-Bucket ausgeliefert.</p>
+  <p>Kampagnenzähler: <span id="campaign-counter">…</span></p>
+
+  <script>
+    fetch("/api/count", { cache: "no-store" })
+      .then((response) => {
+        if (!response.ok) throw new Error("HTTP " + response.status);
+        return response.json();
+      })
+      .then((data) => {
+        document.getElementById("campaign-counter").textContent = data.count;
+      })
+      .catch((error) => {
+        document.getElementById("campaign-counter").textContent = "nicht verfügbar";
+        console.error("campaign counter request failed:", error);
+      });
+  </script>
+</body>
+</html>

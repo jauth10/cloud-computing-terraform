@@ -37,3 +37,11 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "site" {
     }
   }
 }
+
+resource "aws_s3_object" "index" {
+  bucket       = aws_s3_bucket.site.id
+  key          = "index.html"
+  source       = "${path.module}/../src/site/index.html"
+  content_type = "text/html; charset=utf-8"
+  etag         = filemd5("${path.module}/../src/site/index.html")
+}
