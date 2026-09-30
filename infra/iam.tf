@@ -29,3 +29,19 @@ resource "aws_iam_role_policy" "lambda_campaign_counter" {
   role   = aws_iam_role.lambda.id
   policy = data.aws_iam_policy_document.lambda_campaign_counter.json
 }
+
+data "aws_iam_policy_document" "lambda_logs" {
+  statement {
+    actions = [
+      "logs:CreateLogStream",
+      "logs:PutLogEvents",
+    ]
+    resources = ["${aws_cloudwatch_log_group.lambda.arn}:*"]
+  }
+}
+
+resource "aws_iam_role_policy" "lambda_logs" {
+  name   = "cloudwatch-logs-write"
+  role   = aws_iam_role.lambda.id
+  policy = data.aws_iam_policy_document.lambda_logs.json
+}
