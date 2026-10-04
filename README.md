@@ -86,6 +86,16 @@ curl -s -o /dev/null -w '%{http_code}\n' \
   "$(terraform output -raw lambda_function_url)api/count"                                        # 403
 ```
 
+## Lasttest
+
+`loadtest.sh` (im Repo-Hauptordner) sendet in fünf Stufen insgesamt 2.200 Anfragen an `GET /api/count` (1, 5, 10, 25 und 50 parallel) mit [ApacheBench](https://httpd.apache.org/docs/2.4/programs/ab.html). Zwischen den Stufen liegen 70 Sekunden, damit jede Stufe in CloudWatch einer eigenen Minute zugeordnet werden kann. Die Domain wird aus `terraform output` gelesen oder als Argument übergeben.
+
+```bash
+./loadtest.sh
+```
+
+Jede Anfrage erhöht den Kampagnenzähler. Den Test nur bewusst und in dieser Größenordnung ausführen.
+
 ## Inhalt aktualisieren
 
 Nach einer Änderung an `src/site/index.html` lädt `terraform apply` die Datei neu hoch. Da CloudFront die Seite zwischenspeichert, muss der Cache anschließend [invalidiert](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Invalidation.html) werden:
@@ -108,6 +118,7 @@ Entfernt alle Ressourcen inklusive Bucket-Inhalt (`force_destroy = true`) und Z�
 
 ```
 ├── .terraform-version          # gepinnte Terraform-Version
+├── loadtest.sh                # gestufter Lasttest für GET /api/count
 ├── docs/
 │   ├── architecture-c4_P2.drawio.png   # Architekturdiagramm (C4), Stand Phase 2, mit eingebetteter draw.io-Quelle
 │   └── architecture-c4.png             # Architekturdiagramm, Stand Phase 1
