@@ -4,7 +4,7 @@ Portfolio-Projekt *Cloud Programming* (IU Internationale Hochschule). Eine stati
 
 ![Architekturdiagramm (C4)](docs/architecture-c4_P2.drawio.png)
 
-Stand der Umsetzung (Phase 2). Das in Phase 1 abgenommene Diagramm liegt zum Vergleich unter [`docs/architecture-c4.png`](docs/architecture-c4.png).
+Stand der Umsetzung (Phase 3). Das in Phase 1 abgenommene Diagramm liegt zum Vergleich unter [`docs/architecture-c4.png`](docs/architecture-c4.png).
 
 ## Architektur
 
@@ -25,6 +25,16 @@ Es gibt keine Anwendungs-Secrets: Alle Dienste authentifizieren sich untereinand
 - [AWS CLI v2](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
 - AWS-Profil `iu-cloud` über [IAM Identity Center (SSO)](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sso.html)
 - Ein AWS Budget als Kostenbremse, manuell angelegt **vor** dem ersten `apply` (bewusst nicht in Terraform)
+- Root-Konto des AWS-Kontos mit Multi-Faktor-Authentifizierung (MFA) gesichert
+
+## Nachbau in einem eigenen AWS-Konto
+
+Zwei Werte sind an das Konto dieses Projekts gebunden und müssen beim Nachbau angepasst werden:
+
+- **State-Bucket:** S3-Bucket-Namen sind global eindeutig. Einen eigenen Namen sowohl in `TF_STATE_BUCKET` (Bootstrap) als auch in `bucket` in `infra/backend.tf` eintragen. Der Backend-Block kann keine Variablen verwenden, deshalb steht der Name dort als fester Wert.
+- **AWS-Profil:** Am einfachsten das eigene SSO-Profil ebenfalls `iu-cloud` nennen. Andernfalls den Profilnamen in `infra/backend.tf` (`profile`), in `terraform.tfvars` (`aws_profile`) und in den CLI-Befehlen dieses README ersetzen.
+
+Neue AWS-Konten können ein niedriges Limit für gleichzeitige Lambda-Ausführungen haben (in diesem Projekt 10 statt des AWS-Standards von 1.000). Der Lasttest wird dann entsprechend früh gedrosselt.
 
 ## Bootstrap (einmalig)
 
@@ -84,6 +94,12 @@ curl -s -o /dev/null -w '%{http_code}\n' \
   "https://$(terraform output -raw site_bucket_name).s3.eu-central-1.amazonaws.com/index.html"   # 403
 curl -s -o /dev/null -w '%{http_code}\n' \
   "$(terraform output -raw lambda_function_url)api/count"                                        # 403
+
+# Unter /api/* sind nur GET und HEAD erlaubt; CloudFront weist POST ab, die Lambda-Funktion wird nicht aufgerufen
+curl -s -o /dev/null -w '%{http_code}\n' -X POST "https://$DOMAIN/api/count"   # 403
+
+# Unbekannte Pfade unter /api/* beantwortet die Lambda-Funktion mit 404, ohne zu zählen
+curl -s -o /dev/null -w '%{http_code}\n' "https://$DOMAIN/api/other"            # 404
 ```
 
 ## Lasttest
